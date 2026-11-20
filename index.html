@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Caspian fishing game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --paper:#FCFAF7;--card:#F3ECE4;--dash:#CDBFB1;--ink:#4E4E60;--mute:#7B7B8A;--peach:#FBB47E;--yellow:#FBCA7E;
+  --accent:#E8843E;--sci:#4F86B0;--bad:#C9483F;--bad-soft:#F6DCD7;--good:#4F9A6A;--white:#FFFFFF;
+  --font:"Afacad Flux","Afacad",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.4;
+  display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+.bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;background:var(--paper);border-bottom:1px solid #EFE7DE;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.brand{font-weight:700;font-size:17px}
+.who{margin-left:auto;font-size:15px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45vw}
+.help{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--card);color:var(--ink);font:inherit;font-size:17px;font-weight:700;cursor:pointer}
+main{flex:1;width:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:13px;
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px))}
+.tag{font-size:13.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+h1{margin:0;font-size:30px;font-weight:700;line-height:1.06;text-wrap:balance}
+p{margin:0}
+.p{font-size:16.5px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.col{display:flex;flex-direction:column;gap:9px}
+.opt{font:inherit;border:0;border-radius:18px;background:var(--card);color:var(--ink);padding:13px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;touch-action:manipulation}
+.opt.row{align-items:flex-start;text-align:left;padding:12px 16px}
+.opt b{font-size:34px;line-height:1.02}
+.opt.row b{font-size:19px}
+.opt small{font-size:14px;color:var(--mute)}
+.opt[aria-pressed="true"]{background:var(--accent);color:var(--white)}
+.opt[aria-pressed="true"] small{color:var(--white)}
+.opt:disabled{opacity:.55;cursor:default}
+.cta{font:inherit;font-size:18px;font-weight:700;border:0;border-radius:16px;background:var(--accent);color:var(--white);padding:14px;cursor:pointer;touch-action:manipulation}
+.cta:disabled{opacity:.6}
+.link{font:inherit;font-size:15.5px;border:0;background:none;color:var(--mute);text-decoration:underline;padding:6px;cursor:pointer;align-self:center}
+input{font:inherit;font-size:19px;border:2px solid var(--dash);border-radius:14px;padding:12px 14px;background:var(--white);color:var(--ink);width:100%}
+label{font-size:15px;font-weight:600}
+.sci{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:#E8F0F6;color:#2F5E82;border-radius:14px;padding:9px 13px;font-size:15px}
+.sci b{font-size:21px}
+.note{font-size:15px;background:var(--card);border-radius:14px;padding:10px 12px}
+.note.ev{background:var(--yellow)}
+.note.bad{background:var(--bad-soft);color:var(--bad);font-weight:600}
+.note.good{background:#DCEFE2;color:#2F6B45;font-weight:600}
+.status{font-size:15px;color:var(--mute);text-align:center;font-variant-numeric:tabular-nums;min-height:2.8em}
+.status.ok{color:#2F6B45;font-weight:600}
+.status.bad{color:var(--bad);font-weight:600}
+.big{font-size:52px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.list{list-style:none;margin:0;padding:0;font-size:17px;display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
+.list li{display:flex;justify-content:space-between;gap:8px}
+.mine{display:flex;justify-content:space-between;font-size:15px;color:var(--mute);font-variant-numeric:tabular-nums}
+.mine b{color:var(--ink)}
+.dots{display:flex;gap:6px;justify-content:center}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--dash)}
+.dots i.on{background:var(--accent)}
+.nav{margin-top:auto;display:flex;gap:10px}
+.nav button{flex:1;font:inherit;font-size:17px;font-weight:700;border:0;border-radius:16px;padding:13px;cursor:pointer;background:var(--card);color:var(--ink)}
+.nav button.go{background:var(--accent);color:var(--white)}
+.wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;flex:1;min-height:50vh}
+.spin{width:34px;height:34px;border-radius:50%;border:4px solid var(--card);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.banner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:3;background:var(--ink);color:var(--white);border-radius:14px;padding:11px 14px;font-size:15px;text-align:center}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* rule illustrations (same as the screen) */
+.ill{font-size:15.5px}
+.ill .row{display:flex;flex-wrap:wrap;align-items:center;gap:.45em;margin-bottom:.5em}
+.ix{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card);border-radius:.6em;padding:.4em .75em;font-weight:600;line-height:1.15;text-align:center}
+.ix.good{background:#DCEFE2;color:#2F6B45}
+.ix.warn{background:#FCE9C9;color:#8A5A1A}
+.ix.bad{background:var(--bad-soft);color:var(--bad)}
+.ix.ev{background:var(--yellow)}
+.ix.net{width:4.4em;height:4em}
+.ix.net b{font-size:2em;line-height:1}
+.ix.net span{font-size:.7em;font-weight:500;color:var(--mute)}
+.arr{color:var(--mute);font-weight:700}
+.sbar{position:relative;height:2.2em;border-radius:1.1em;background:linear-gradient(90deg,#F6DCD7,#FFFFFF 40%,#DDEFF4);box-shadow:inset 0 0 0 2px var(--dash);margin:2.2em 0 2.2em}
+.sband{position:absolute;top:-.3em;bottom:-.3em;background:rgba(79,134,176,.22);border:2px solid var(--sci);border-radius:.5em}
+.sband span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);white-space:nowrap;color:#2F5E82;font-weight:600;margin-bottom:.25em;font-size:.9em}
+.stip{position:absolute;top:-.5em;bottom:-.5em;border-left:3px dashed var(--bad)}
+.stip span{position:absolute;top:100%;left:-.4em;white-space:nowrap;color:var(--bad);font-weight:600;margin-top:.25em;font-size:.9em}
+.sends{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 .7em;font-size:.8em;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<header class="bar"><span class="brand">Caspian fishing game</span><span class="who"></span><button class="help" type="button" hidden aria-label="Show the rules">?</button></header>
+<main id="app" aria-live="polite"><div class="wait"><div class="spin"></div><p class="p">Connecting to the game…</p></div></main>
+<div class="banner" hidden role="status"></div>
+<script>
+(function () {
+'use strict';
+
+/* ---------- rules: the same numbers and words as the screen ---------- */
+var PRICE = 1, FUEL = 2;
+var PATROL = [
+  { name: 'No rule', text: 'No quota and no patrol. Fish as you like.', fee: 0 },
+  { name: 'Light patrol', text: 'Quota of 1 net. The patrol checks 1 boat in 4. Fee 1 ₼ a season.', fee: 1 },
+  { name: 'Strict patrol', text: 'Quota of 1 net. The patrol checks 2 boats in 5. Fee 2 ₼ a season.', fee: 2 }
+];
+var EVENTS = {
+  storm: { title: 'Storm', text: 'Half of every net comes back empty. Fuel still costs 2 ₼ a net.' },
+  oil: { title: 'Oil spill', text: 'Part of the stock dies, and fish grow at half speed for two seasons.' },
+  jelly: { title: 'Comb jelly invasion', text: 'An alien jelly eats the fishes’ food. Fish grow slower for the rest of the game.' },
+  spawn: { title: 'Good spawning year', text: 'Fish grow 50% faster this season.' },
+  price: { title: 'Price boom', text: 'Fish sell for double this season.' },
+  poach: { title: 'Poachers', text: 'Foreign boats take fish. A strict patrol stops most of them.' },
+  low: { title: 'Low water', text: 'The sea is shallow this year. Fish grow 30% slower.' },
+  calm: { title: 'Calm season', text: 'Nothing unusual happens.' }
+};
+var TUT = [
+  { title: 'Your boat', ill: 'nets', text: 'Each season, choose 0, 1, 2 or 3 nets. Talk to the others if you like: you can change it until the presenter closes the season.' },
+  { title: 'Nets cost money', ill: 'money', text: 'A net catches about 1 fish per 10 units of stock. A fish sells for 1 ₼; fuel costs 2 ₼ a net.' },
+  { title: 'One shared, hidden sea', ill: 'sea', text: 'Everyone fishes the same sea. Below a secret tipping point it collapses for good. You only see the scientists’ estimate, ±10.' },
+  { title: 'Rules after season 4', ill: 'council', text: 'After season 4 you vote on the rules. Over the quota and caught: you lose double what the extra nets earned. Caught twice: you sit out a season.' },
+  { title: 'Surprises from season 6', ill: 'events', text: 'From season 6 an event card opens every season: storms, oil spills, price booms, poachers…' },
+  { title: 'How to win', ill: 'win', text: 'The richest wins, but only if the sea survives. The game stops without warning. If the sea collapses first, nobody wins.' }
+];
+function ill(kind) {
+  switch (kind) {
+    case 'nets': return '<div class="row">' + [0, 1, 2, 3].map(function (k) { return '<div class="ix net"><b>' + k + '</b><span>' + (k ? (k === 1 ? '1 net' : k + ' nets') : 'stay in port') + '</span></div>'; }).join('') + '</div>';
+    case 'money': return '<div class="row"><span class="ix">Stock 80</span><span class="arr">→</span><span class="ix">8 fish = 8 ₼</span><span class="arr">−</span><span class="ix">2 ₼ fuel</span><span class="arr">=</span><span class="ix good">+6 ₼ a net</span></div>' +
+      '<div class="row"><span class="ix">Stock 30</span><span class="arr">→</span><span class="ix">3 fish = 3 ₼</span><span class="arr">−</span><span class="ix">2 ₼ fuel</span><span class="arr">=</span><span class="ix warn">+1 ₼ a net</span></div>';
+    case 'sea': return '<div class="sbar"><div class="sends"><span>0</span><span>100</span></div><div class="sband" style="left:44%;width:20%"><span>scientists: ≈54 ±10</span></div><div class="stip" style="left:20%"><span>tipping point: secret</span></div></div>';
+    case 'council': return '<div class="row"><span class="ix">No rule</span><span class="ix">Light patrol<br>checks 1 in 4 · 1 ₼</span><span class="ix">Strict patrol<br>checks 2 in 5 · 2 ₼</span></div>' +
+      '<div class="row"><span class="ix bad">Caught: −2× what extra nets earned</span><span class="ix bad">Twice: sit out a season</span></div>';
+    case 'events': return '<div class="row">' + ['storm', 'oil', 'jelly', 'price', 'poach', 'low'].map(function (id) { return '<span class="ix ev">' + EVENTS[id].title + '</span>'; }).join('') + '<span class="ix ev">…</span></div>';
+    case 'win': return '<div class="row"><span class="ix good">Sea survives</span><span class="arr">→</span><span class="ix good">the richest fisher wins</span></div>' +
+      '<div class="row"><span class="ix bad">Sea collapses</span><span class="arr">→</span><span class="ix bad">nobody wins</span></div>' +
+      '<div class="row"><span class="ix">Last season?</span><span class="arr">→</span><span class="ix">nobody knows until it’s over</span></div>';
+  }
+  return '';
+}
+function mods(ev) { return { em: ev === 'storm' ? .5 : 1, pm: ev === 'price' ? 2 : 1 }; }
+function expected(k, est, ev) { var m = mods(ev); return Math.round(k * est / 10 * m.em * PRICE * m.pm) - FUEL * k; }
+
+/* ---------- helpers ---------- */
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function money(v) { return (v < 0 ? '−' : '') + Math.abs(Math.round(v)).toLocaleString('en-US') + ' ₼'; }
+function signed(v) { return (v < 0 ? '−' : '+') + Math.abs(Math.round(v)).toLocaleString('en-US') + ' ₼'; }
+function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+function ordinal(n) { return n + (['th', 'st', 'nd', 'rd'][(n % 100 > 10 && n % 100 < 14) ? 0 : (n % 10 < 4 ? n % 10 : 0)]); }
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k) || 'null'); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+// Served by Apps Script: google.script.run. Hosted elsewhere (GitHub Pages): plain requests to the same script,
+// sent without Google cookies, so phones signed in to several Google accounts work too.
+var API = 'https://script.google.com/macros/s/AKfycbzcbcIKT4XJAepxhfj-0Z24KTGrwHE3DGLodXbp6MeQ4iXtHDCsiUpMzRzwc4iMDdqaSg/exec';
+var viaGAS = !!(window.google && google.script && google.script.run);
+function call(fn, arg) {
+  if (!viaGAS) {
+    var ctl = window.AbortController ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+    var req = fn === 'getState'
+      ? fetch(API + '?action=state&id=' + encodeURIComponent(arg) + '&t=' + Date.now(), { cache: 'no-store', credentials: 'omit', signal: ctl && ctl.signal })
+      : fetch(API + '?action=submit', { method: 'POST', body: JSON.stringify(arg), credentials: 'omit', signal: ctl && ctl.signal });
+    return req.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (j) { clearTimeout(t); if (j && j.ok === false && j.error) throw new Error(j.error); return j; },
+            function (e) { clearTimeout(t); throw e; });
+  }
+  return new Promise(function (resolve, reject) {
+    var t = setTimeout(function () { reject(new Error('timeout')); }, 20000);
+    google.script.run.withSuccessHandler(function (r) { clearTimeout(t); resolve(r); }).withFailureHandler(function (e) { clearTimeout(t); reject(e); })[fn](arg);
+  });
+}
+
+/* ---------- local memory: who I am and what I chose in this game ---------- */
+var saved = store('cfg-phone') || {};
+var me = {
+  id: /^p[0-9a-z]{6,19}$/.test(saved.id || '') ? saved.id : 'p' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 5),
+  name: typeof saved.name === 'string' ? saved.name.slice(0, 14) : '',
+  g: saved.g || '', ready: !!saved.ready, picks: saved.picks || {}, vote: saved.vote === undefined ? null : saved.vote
+};
+function save() { store('cfg-phone', me); }
+save();
+
+var app = document.getElementById('app'), who = document.querySelector('.who'), helpBtn = document.querySelector('.help'), banner = document.querySelector('.banner');
+var ST, fails = 0, tut = null, editing = false, joinAt = 0, sendState = {}, queue = {}, sending = false;
+
+/* ---------- sending answers: one at a time, newest value wins ---------- */
+function send(kind, round, value) {
+  var key = kind + '|' + round;
+  queue[key] = { kind: kind, round: String(round), value: String(value), tries: 0 };
+  sendState[key] = 'sending';
+  pump();
+}
+function pump() {
+  if (sending) return;
+  var keys = Object.keys(queue);
+  if (!keys.length) return;
+  var key = keys[0], e = queue[key];
+  delete queue[key];
+  sending = true;
+  call('submit', { game: me.g, player: me.id, name: me.name, kind: e.kind, round: e.round, value: e.value }).then(function (r) {
+    sending = false;
+    if (!queue[key]) sendState[key] = r && r.stale ? 'stale' : 'sent';
+    if (r && r.stale) poll();
+    render(); pump();
+  }, function () {
+    sending = false;
+    e.tries++;
+    if (e.tries < 3) {
+      if (!queue[key]) sendState[key] = 'retry';
+      setTimeout(function () { if (!queue[key]) queue[key] = e; pump(); }, 1500 * e.tries);
+    } else if (!queue[key]) sendState[key] = 'failed';
+    render(); pump();
+  });
+}
+
+// again = joining a new game after playing one: no need to read the rules again
+function join(name, again) {
+  var wasReady = me.ready;
+  me.name = name; me.g = ST.g; me.ready = !!(again && wasReady); me.picks = {}; me.vote = null; save();
+  sendState = {}; queue = {}; joinAt = Date.now(); editing = false;
+  send('join', '', '');
+  if (me.ready) send('ready', '', '1');
+  tut = !me.ready && (ST.ph === 'lobby' || ST.ph === 'tutorial') ? 0 : null;
+}
+
+/* ---------- reading the game every two seconds ---------- */
+var timer = 0, polling = false;
+function poll() {
+  clearTimeout(timer);
+  if (polling) return;
+  polling = true;
+  call('getState', me.id).then(function (s) {
+    polling = false; fails = 0; banner.hidden = true;
+    onState(s);
+  }, function () {
+    polling = false; fails++;
+    if (fails >= 2) { banner.textContent = 'Connection problem. Trying again…'; banner.hidden = false; }
+  }).then(function () {
+    if (document.visibilityState !== 'hidden') timer = setTimeout(poll, fails ? Math.min(8000, 2000 * fails) : 2000);
+  });
+}
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') poll(); });
+
+function onState(s) {
+  var prev = ST;
+  ST = s;
+  if (s && s.g !== me.g && me.name) join(me.name, true); // a new game started: join it again under the same name
+  if (s && s.g === me.g && !s.me && joinAt && Date.now() - joinAt > 15000) { joinAt = Date.now(); send('join', '', ''); }
+  if (s && prev && prev.ph !== s.ph && (s.ph === 'open' || s.ph === 'council') && tut !== null) tut = null; // a choice is needed: close the rules
+  render();
+}
+
+/* ---------- screens ---------- */
+var shown = '';
+function html(h) {
+  if (h === shown) return; // nothing changed: keep the page still under the finger
+  shown = h;
+  var inp = app.querySelector('input'), keep = inp ? { v: inp.value, f: document.activeElement === inp } : null;
+  app.innerHTML = h;
+  var n = app.querySelector('input');
+  if (n && keep) { n.value = keep.v; if (keep.f) n.focus(); }
+}
+function sci() { return '<div class="sci"><span>Scientists’ estimate</span><b>' + ST.est + ' ±10</b></div>'; }
+function mine(m) { return m ? '<div class="mine"><span>Your money <b>' + money(m[4]) + '</b></span><span>Rank <b>' + m[5] + '</b> of ' + ST.n + '</span></div>' : ''; }
+function tutScreen(i) {
+  var t = TUT[i], last = i === TUT.length - 1;
+  return '<div class="tag">How to play · ' + (i + 1) + ' of ' + TUT.length + '</div><h1>' + t.title + '</h1><p class="p">' + t.text + '</p><div class="ill">' + ill(t.ill) + '</div>' +
+    '<div class="dots">' + TUT.map(function (_, k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
+    '<div class="nav">' + (i ? '<button type="button" data-a="tback">Back</button>' : '') + '<button type="button" class="go" data-a="' + (last ? 'tdone' : 'tnext') + '">' + (last ? (me.ready ? 'Back to the game' : 'I’m ready') : 'Next') + '</button></div>';
+}
+function statusLine(key, received, empty, done) {
+  var st = sendState[key];
+  if (st === 'failed') return '<div class="status bad">Couldn’t send. Check the internet and tap again.</div>';
+  if (st === 'retry') return '<div class="status">Sending again…</div>';
+  if (st === 'stale') return '<div class="status bad">The game was restarted. Joining the new one…</div>';
+  if (st === 'sending') return '<div class="status">Sending…</div>';
+  if (received) return '<div class="status ok">✓ ' + done + '</div>';
+  if (st === 'sent') return '<div class="status">Sent. Waiting for the screen to confirm…</div>';
+  return '<div class="status">' + empty + '</div>';
+}
+function render() {
+  var joined = ST && me.name && me.g === ST.g;
+  who.textContent = joined ? me.name : '';
+  helpBtn.hidden = !joined || tut !== null;
+  if (!ST) return html('<div class="wait"><div class="spin"></div><h1>Waiting for the game</h1><p class="p">The presenter hasn’t opened the game yet. Keep this page open.</p></div>');
+  if (!joined || editing) {
+    return html('<div class="tag">Caspian fishing game</div><h1>Everyone fishes</h1><p class="p">Your phone is one fishing boat. Pick a name to join.</p>' +
+      '<label for="name">Your name</label><input id="name" maxlength="14" placeholder="e.g. Leyla" autocomplete="off" autocapitalize="words" enterkeyhint="go" value="' + esc(me.name) + '">' +
+      '<button type="button" class="cta" data-a="join">' + (editing ? 'Save the name' : 'Join the game') + '</button>' + (editing ? '<button type="button" class="link" data-a="cancel">Cancel</button>' : ''));
+  }
+  if (tut !== null) return html(tutScreen(tut));
+  var m = ST.me, s = ST.s, h = '';
+  if (!m) return html('<div class="wait"><div class="spin"></div><h1>Joining…</h1><p class="p">Your name will appear on the screen in a few seconds.</p></div>');
+  var flags = m[6] || 0;
+  switch (ST.ph) {
+    case 'lobby': case 'tutorial':
+      h = '<div class="tag">' + (me.ready ? 'Ready' : 'You’re in') + '</div><h1>' + (me.ready ? 'All set, ' : 'Welcome aboard, ') + esc(me.name) + '</h1>' +
+        '<p class="p">Season 1 starts when the presenter opens it. Keep this page open.</p>' +
+        (me.ready ? '' : '<button type="button" class="cta" data-a="rules">Read the rules</button>') +
+        '<p class="p">You can see the rules again any time with the ? button at the top.</p><button type="button" class="link" data-a="rename">Change my name</button>';
+      break;
+    case 'open': {
+      var ev = ST.ev ? EVENTS[ST.ev] : null;
+      if (flags & 2) { h = '<div class="tag">Season ' + s + '</div><h1>Licence suspended</h1><div class="note bad">You were caught twice over the quota, so you sit out this season.</div>' + sci() + mine(m); break; }
+      var pick = me.picks[s], got = m[0];
+      h = '<div class="tag">Season ' + s + '</div>' + (ev ? '<div class="note ev"><b>' + ev.title + '.</b> ' + ev.text + '</div>' : '') + sci() + '<h1>How many nets?</h1>' +
+        '<div class="grid">' + [0, 1, 2, 3].map(function (k) { return '<button type="button" class="opt" data-a="nets" data-v="' + k + '" aria-pressed="' + (pick === k) + '"><b>' + k + '</b><small>' + (k ? '≈ ' + signed(expected(k, ST.est, ST.ev)) : 'stay in port') + '</small></button>'; }).join('') + '</div>' +
+        (ST.pat ? '<div class="note">Quota: 1 net. ' + PATROL[ST.pat].name + ': fee ' + PATROL[ST.pat].fee + ' ₼. Caught over it: you lose double what the extra nets earn.</div>' : '') +
+        statusLine('nets|' + s, pick !== undefined && got === pick, 'Tap to choose. Talk to the others if you like.', 'The screen has your choice. You can change it until the season closes.') + mine(m);
+      break;
+    }
+    case 'results':
+      if (m[0] < 0) { h = '<div class="tag">Season ' + s + ' result</div><h1>You joined after this season</h1><p class="p">You play from the next season. Look at the screen to see how the sea is doing.</p>' + mine(m); break; }
+      h = '<div class="tag">Season ' + s + ' result</div>' +
+        (flags & 8 ? '<h1>You stayed in port</h1><p class="p">' + (me.picks[s] !== undefined ? 'Your choice reached the screen after the season closed.' : 'You didn’t choose in time.') + '</p>'
+          : flags & 2 ? '<h1>You sat out this season</h1>' : '<h1>You cast ' + plural(m[0], 'net') + ' and caught ' + m[1] + ' fish</h1>') +
+        '<div class="big">' + signed(m[2]) + '</div>' +
+        (flags & 1 ? '<div class="note bad">The patrol caught you: −' + m[3] + ' ₼.' + (flags & 4 ? ' Second time: you sit out next season.' : '') + '</div>' : '') +
+        '<ul class="list"><li><span>Your money</span><b>' + money(m[4]) + '</b></li><li><span>Your rank</span><b>' + m[5] + ' of ' + ST.n + '</b></li></ul>' +
+        (ST.col ? '<div class="note bad">The sea has collapsed.</div>' : ST.last ? '<div class="note ev"><b>That was the last season.</b> Look at the screen for the truth about the sea.</div>' : '');
+      break;
+    case 'council':
+      h = '<div class="tag">Council vote</div><h1>Which rules from season 5 to the end?</h1>' + sci() +
+        '<div class="col">' + PATROL.map(function (p, i) { return '<button type="button" class="opt row" data-a="vote" data-v="' + i + '" aria-pressed="' + (me.vote === i) + '"><b>' + p.name + '</b><small>' + p.text + '</small></button>'; }).join('') + '</div>' +
+        statusLine('vote|c', me.vote !== null && m[7] === me.vote, 'Argue your case, then vote.', 'The screen has your vote. You can change it until the presenter counts.') + mine(m);
+      break;
+    case 'councilResult':
+      h = '<div class="tag">Council decision</div><h1>' + PATROL[ST.pat].name + '</h1><p class="p">' + PATROL[ST.pat].text + '</p>' +
+        '<p class="p">Votes: ' + PATROL.map(function (p, i) { return p.name + ' ' + (ST.tally ? ST.tally[i] : 0); }).join(' · ') + '</p>' + mine(m);
+      break;
+    case 'end':
+      h = '<div class="tag">Game over</div><h1>' + (ST.col ? 'The sea collapsed' : 'The sea survived') + '</h1><div class="big">' + money(m[4]) + '</div>' +
+        '<p class="p">' + (ST.col ? 'Nobody’s money counts.' : 'You finished ' + ordinal(m[5]) + ' of ' + ST.n + '.' + (ST.win ? ' The winner: ' + esc(ST.win) + '.' : '')) + ' The real stock: ' + ST.S + '.</p>' +
+        '<p class="p">Keep this page open: if the presenter starts a new game, you join it automatically.</p>';
+      break;
+  }
+  html(h);
+}
+
+/* ---------- taps ---------- */
+function joinFromInput() {
+  var inp = app.querySelector('input'), name = (inp && inp.value.replace(/\s+/g, ' ').trim()) || '';
+  if (!name) { if (inp) inp.focus(); return; }
+  if (editing) { me.name = name.slice(0, 14); save(); editing = false; send('join', '', ''); render(); return; }
+  join(name.slice(0, 14)); render();
+}
+app.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-a]'); if (!b || !ST) return;
+  var a = b.getAttribute('data-a'), v = +b.getAttribute('data-v');
+  if (a === 'join') joinFromInput();
+  else if (a === 'cancel') { editing = false; render(); }
+  else if (a === 'rename') { editing = true; render(); var i = app.querySelector('input'); if (i) i.focus(); }
+  else if (a === 'rules') { tut = 0; render(); }
+  else if (a === 'tnext') { tut = Math.min(TUT.length - 1, tut + 1); render(); }
+  else if (a === 'tback') { tut = Math.max(0, tut - 1); render(); }
+  else if (a === 'tdone') { tut = null; if (!me.ready) { me.ready = true; save(); send('ready', '', '1'); } render(); }
+  else if (a === 'nets' && ST.ph === 'open' && ST.me && !((ST.me[6] || 0) & 2)) { me.picks[ST.s] = v; save(); send('nets', ST.s, v); render(); }
+  else if (a === 'vote' && ST.ph === 'council') { me.vote = v; save(); send('vote', 'c', v); render(); }
+  if (/^(join|rename|rules|tnext|tback|tdone)$/.test(a)) window.scrollTo(0, 0);
+});
+app.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.matches('input')) { e.preventDefault(); joinFromInput(); } });
+helpBtn.addEventListener('click', function () { tut = 0; render(); window.scrollTo(0, 0); });
+
+poll();
+})();
+</script>
+</body>
+</html>
