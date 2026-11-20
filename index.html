@@ -173,8 +173,9 @@ function call(fn, arg) {
 
 /* ---------- local memory: who I am and what I chose in this game ---------- */
 var saved = store('cfg-phone') || {};
+function newPlayerId() { return 'p' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 5); }
 var me = {
-  id: /^p[0-9a-z]{6,19}$/.test(saved.id || '') ? saved.id : 'p' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 5),
+  id: /^p[0-9a-z]{6,19}$/.test(saved.id || '') ? saved.id : newPlayerId(),
   name: typeof saved.name === 'string' ? saved.name.slice(0, 14) : '',
   g: saved.g || '', ready: !!saved.ready, picks: saved.picks || {}, vote: saved.vote === undefined ? null : saved.vote
 };
@@ -182,7 +183,7 @@ function save() { store('cfg-phone', me); }
 save();
 
 var app = document.getElementById('app'), who = document.querySelector('.who'), helpBtn = document.querySelector('.help'), banner = document.querySelector('.banner');
-var ST, fails = 0, tut = null, editing = false, joinAt = 0, sendState = {}, queue = {}, sending = false;
+var ST, fails = 0, tut = null, editing = false, joinAt = 0, sendState = {}, queue = {}, sending = false, removed = false;
 
 /* ---------- sending answers: one at a time, newest value wins ---------- */
 function send(kind, round, value) {
@@ -245,8 +246,11 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 function onState(s) {
   var prev = ST;
   ST = s;
+  // the presenter can take a phone out of the game (a test entry, a duplicate)
+  removed = !!(s && s.g === me.g && s.x && s.x.indexOf(me.id) >= 0);
+  if (removed) tut = null;
   if (s && s.g !== me.g && me.name) join(me.name, true); // a new game started: join it again under the same name
-  if (s && s.g === me.g && !s.me && joinAt && Date.now() - joinAt > 15000) { joinAt = Date.now(); send('join', '', ''); }
+  if (!removed && s && s.g === me.g && !s.me && joinAt && Date.now() - joinAt > 15000) { joinAt = Date.now(); send('join', '', ''); }
   if (s && prev && prev.ph !== s.ph && (s.ph === 'open' || s.ph === 'council') && tut !== null) tut = null; // a choice is needed: close the rules
   render();
 }
@@ -282,13 +286,14 @@ function statusLine(key, received, empty, done) {
 function render() {
   var joined = ST && me.name && me.g === ST.g;
   who.textContent = joined ? me.name : '';
-  helpBtn.hidden = !joined || tut !== null;
+  helpBtn.hidden = !joined || tut !== null || removed;
   if (!ST) return html('<div class="wait"><div class="spin"></div><h1>Waiting for the game</h1><p class="p">The presenter hasn’t opened the game yet. Keep this page open.</p></div>');
   if (!joined || editing) {
     return html('<div class="tag">Caspian fishing game</div><h1>Everyone fishes</h1><p class="p">Your phone is one fishing boat. Pick a name to join.</p>' +
       '<label for="name">Your name</label><input id="name" maxlength="14" placeholder="e.g. Leyla" autocomplete="off" autocapitalize="words" enterkeyhint="go" value="' + esc(me.name) + '">' +
       '<button type="button" class="cta" data-a="join">' + (editing ? 'Save the name' : 'Join the game') + '</button>' + (editing ? '<button type="button" class="link" data-a="cancel">Cancel</button>' : ''));
   }
+  if (removed) return html('<div class="wait"><h1>You’re out of this game</h1><p class="p">The presenter removed this phone from the game, for example because it was a test.</p><button type="button" class="cta" data-a="rejoin">Join again</button></div>');
   if (tut !== null) return html(tutScreen(tut));
   var m = ST.me, s = ST.s, h = '';
   if (!m) return html('<div class="wait"><div class="spin"></div><h1>Joining…</h1><p class="p">Your name will appear on the screen in a few seconds.</p></div>');
@@ -350,6 +355,7 @@ app.addEventListener('click', function (e) {
   var a = b.getAttribute('data-a'), v = +b.getAttribute('data-v');
   if (a === 'join') joinFromInput();
   else if (a === 'cancel') { editing = false; render(); }
+  else if (a === 'rejoin') { me.id = newPlayerId(); removed = false; join(me.name || 'Fisher', true); render(); }
   else if (a === 'rename') { editing = true; render(); var i = app.querySelector('input'); if (i) i.focus(); }
   else if (a === 'rules') { tut = 0; render(); }
   else if (a === 'tnext') { tut = Math.min(TUT.length - 1, tut + 1); render(); }
@@ -357,7 +363,7 @@ app.addEventListener('click', function (e) {
   else if (a === 'tdone') { tut = null; if (!me.ready) { me.ready = true; save(); send('ready', '', '1'); } render(); }
   else if (a === 'nets' && ST.ph === 'open' && ST.me && !((ST.me[6] || 0) & 2)) { me.picks[ST.s] = v; save(); send('nets', ST.s, v); render(); }
   else if (a === 'vote' && ST.ph === 'council') { me.vote = v; save(); send('vote', 'c', v); render(); }
-  if (/^(join|rename|rules|tnext|tback|tdone)$/.test(a)) window.scrollTo(0, 0);
+  if (/^(join|rejoin|rename|rules|tnext|tback|tdone)$/.test(a)) window.scrollTo(0, 0);
 });
 app.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.matches('input')) { e.preventDefault(); joinFromInput(); } });
 helpBtn.addEventListener('click', function () { tut = 0; render(); window.scrollTo(0, 0); });
