@@ -89,6 +89,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .sband span{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);white-space:nowrap;color:#2F5E82;font-weight:600;margin-bottom:.25em;font-size:.9em}
 .stip{position:absolute;top:-.5em;bottom:-.5em;border-left:3px dashed var(--bad)}
 .stip span{position:absolute;top:100%;left:-.4em;white-space:nowrap;color:var(--bad);font-weight:600;margin-top:.25em;font-size:.9em}
+.szone{position:absolute;top:-.4em;bottom:-.4em;background:repeating-linear-gradient(135deg,rgba(201,72,63,.22) 0 6px,rgba(201,72,63,.08) 6px 12px);border-radius:.5em}
+.szone span{position:absolute;top:100%;left:0;white-space:nowrap;color:var(--bad);font-weight:600;margin-top:.3em;font-size:.9em}
 .sends{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 .7em;font-size:.8em;color:var(--mute)}
 @media (prefers-reduced-motion:reduce){.spin{animation:none}}
 </style>
@@ -131,7 +133,7 @@ function ill(kind) {
     case 'nets': return '<div class="row">' + [0, 1, 2, 3].map(function (k) { return '<div class="ix net"><b>' + k + '</b><span>' + (k ? (k === 1 ? '1 net' : k + ' nets') : 'stay in port') + '</span></div>'; }).join('') + '</div>';
     case 'money': return '<div class="row"><span class="ix">Stock 80</span><span class="arr">→</span><span class="ix">8 fish = 8 ₼</span><span class="arr">−</span><span class="ix">2 ₼ fuel</span><span class="arr">=</span><span class="ix good">+6 ₼ a net</span></div>' +
       '<div class="row"><span class="ix">Stock 30</span><span class="arr">→</span><span class="ix">3 fish = 3 ₼</span><span class="arr">−</span><span class="ix">2 ₼ fuel</span><span class="arr">=</span><span class="ix warn">+1 ₼ a net</span></div>';
-    case 'sea': return '<div class="sbar"><div class="sends"><span>0</span><span>100</span></div><div class="sband" style="left:44%;width:20%"><span>scientists: ≈54 ±10</span></div><div class="stip" style="left:20%"><span>tipping point: secret</span></div></div>';
+    case 'sea': return '<div class="sbar"><div class="sends"><span>0</span><span>100</span></div><div class="sband" style="left:44%;width:20%"><span>scientists: ≈54 ±10</span></div><div class="szone" style="left:6%;width:30%"><span>tipping point: somewhere here, secret</span></div></div>';
     case 'council': return '<div class="row"><span class="ix">No rule</span><span class="ix">Light patrol<br>checks 1 in 4 · 1 ₼</span><span class="ix">Strict patrol<br>checks 2 in 5 · 2 ₼</span></div>' +
       '<div class="row"><span class="ix bad">Caught: −2× what extra nets earned</span><span class="ix bad">Twice: sit out a season</span></div>';
     case 'events': return '<div class="row">' + ['storm', 'oil', 'jelly', 'price', 'poach', 'low'].map(function (id) { return '<span class="ix ev">' + EVENTS[id].title + '</span>'; }).join('') + '<span class="ix ev">…</span></div>';
@@ -238,7 +240,7 @@ function poll() {
     polling = false; fails++;
     if (fails >= 2) { banner.textContent = 'Connection problem. Trying again…'; banner.hidden = false; }
   }).then(function () {
-    if (document.visibilityState !== 'hidden') timer = setTimeout(poll, fails ? Math.min(8000, 2000 * fails) : 2000);
+    if (document.visibilityState !== 'hidden') timer = setTimeout(poll, fails ? Math.min(8000, 2000 * fails) : 1000);
   });
 }
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') poll(); });
@@ -280,7 +282,7 @@ function statusLine(key, received, empty, done) {
   if (st === 'stale') return '<div class="status bad">The game was restarted. Joining the new one…</div>';
   if (st === 'sending') return '<div class="status">Sending…</div>';
   if (received) return '<div class="status ok">✓ ' + done + '</div>';
-  if (st === 'sent') return '<div class="status">Sent. Waiting for the screen to confirm…</div>';
+  if (st === 'sent') return '<div class="status ok">✓ Sent. ' + done.replace(/^The screen has your (choice|vote)\. /, '') + '</div>';
   return '<div class="status">' + empty + '</div>';
 }
 function render() {
