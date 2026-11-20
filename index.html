@@ -112,18 +112,18 @@ var PATROL = [
 ];
 var EVENTS = {
   storm: { title: 'Storm', text: 'Half of every net comes back empty. Fuel still costs 2 ₼ a net.' },
-  oil: { title: 'Oil spill', text: 'Part of the stock dies, and fish grow at half speed for two seasons.' },
-  jelly: { title: 'Comb jelly invasion', text: 'An alien jelly eats the fishes’ food. Fish grow slower for the rest of the game.' },
-  spawn: { title: 'Good spawning year', text: 'Fish grow 50% faster this season.' },
+  oil: { title: 'Oil spill', text: 'Part of the stock dies. For two seasons fish grow at half speed and the sea is more fragile.' },
+  jelly: { title: 'Comb jelly invasion', text: 'An alien jelly eats the fishes’ food. For the rest of the game fish grow slower and the sea is more fragile.' },
+  spawn: { title: 'Good spawning year', text: 'Fish grow 50% faster this season, and the sea is a little sturdier.' },
   price: { title: 'Price boom', text: 'Fish sell for double this season.' },
   poach: { title: 'Poachers', text: 'Foreign boats take fish. A strict patrol stops most of them.' },
-  low: { title: 'Low water', text: 'The sea is shallow this year. Fish grow 30% slower.' },
+  low: { title: 'Low water', text: 'The sea is shallow this year. Fish grow 30% slower and the sea is more fragile.' },
   calm: { title: 'Calm season', text: 'Nothing unusual happens.' }
 };
 var TUT = [
   { title: 'Your boat', ill: 'nets', text: 'Each season, choose 0, 1, 2 or 3 nets. Talk to the others if you like: you can change it until the presenter closes the season.' },
   { title: 'Nets cost money', ill: 'money', text: 'A net catches about 1 fish per 10 units of stock. A fish sells for 1 ₼; fuel costs 2 ₼ a net.' },
-  { title: 'One shared, hidden sea', ill: 'sea', text: 'Everyone fishes the same sea. Below a secret tipping point it collapses for good. You only see the scientists’ estimate, ±10.' },
+  { title: 'One shared, hidden sea', ill: 'sea', text: 'Everyone fishes the same sea. Below a secret tipping point it collapses for good, and bad years push that point up. You see only the scientists’ estimate, ±10, and their warnings.' },
   { title: 'Rules after season 4', ill: 'council', text: 'After season 4 you vote on the rules. Over the quota and caught: you lose double what the extra nets earned. Caught twice: you sit out a season.' },
   { title: 'Surprises from season 6', ill: 'events', text: 'From season 6 an event card opens every season: storms, oil spills, price booms, poachers…' },
   { title: 'How to win', ill: 'win', text: 'The richest wins, but only if the sea survives. The game stops without warning. If the sea collapses first, nobody wins.' }
@@ -133,7 +133,7 @@ function ill(kind) {
     case 'nets': return '<div class="row">' + [0, 1, 2, 3].map(function (k) { return '<div class="ix net"><b>' + k + '</b><span>' + (k ? (k === 1 ? '1 net' : k + ' nets') : 'stay in port') + '</span></div>'; }).join('') + '</div>';
     case 'money': return '<div class="row"><span class="ix">Stock 80</span><span class="arr">→</span><span class="ix">8 fish = 8 ₼</span><span class="arr">−</span><span class="ix">2 ₼ fuel</span><span class="arr">=</span><span class="ix good">+6 ₼ a net</span></div>' +
       '<div class="row"><span class="ix">Stock 30</span><span class="arr">→</span><span class="ix">3 fish = 3 ₼</span><span class="arr">−</span><span class="ix">2 ₼ fuel</span><span class="arr">=</span><span class="ix warn">+1 ₼ a net</span></div>';
-    case 'sea': return '<div class="sbar"><div class="sends"><span>0</span><span>100</span></div><div class="sband" style="left:44%;width:20%"><span>scientists: ≈54 ±10</span></div><div class="szone" style="left:6%;width:30%"><span>tipping point: somewhere here, secret</span></div></div>';
+    case 'sea': return '<div class="sbar"><div class="sends"><span>0</span><span>100</span></div><div class="sband" style="left:44%;width:20%"><span>scientists: ≈54 ±10</span></div><div class="szone" style="left:6%;width:30%"><span>tipping point: secret, and it moves</span></div></div>';
     case 'council': return '<div class="row"><span class="ix">No rule</span><span class="ix">Light patrol<br>checks 1 in 4 · 1 ₼</span><span class="ix">Strict patrol<br>checks 2 in 5 · 2 ₼</span></div>' +
       '<div class="row"><span class="ix bad">Caught: −2× what extra nets earned</span><span class="ix bad">Twice: sit out a season</span></div>';
     case 'events': return '<div class="row">' + ['storm', 'oil', 'jelly', 'price', 'poach', 'low'].map(function (id) { return '<span class="ix ev">' + EVENTS[id].title + '</span>'; }).join('') + '<span class="ix ev">…</span></div>';
@@ -311,7 +311,8 @@ function render() {
       var ev = ST.ev ? EVENTS[ST.ev] : null;
       if (flags & 2) { h = '<div class="tag">Season ' + s + '</div><h1>Licence suspended</h1><div class="note bad">You were caught twice over the quota, so you sit out this season.</div>' + sci() + mine(m); break; }
       var pick = me.picks[s], got = m[0];
-      h = '<div class="tag">Season ' + s + '</div>' + (ev ? '<div class="note ev"><b>' + ev.title + '.</b> ' + ev.text + '</div>' : '') + sci() + '<h1>How many nets?</h1>' +
+      h = '<div class="tag">Season ' + s + '</div>' + (ev ? '<div class="note ev"><b>' + ev.title + '.</b> ' + ev.text + '</div>' : '') + sci() +
+        (ST.w ? '<div class="note bad">Warning signs: young fish are scarce and the sea recovers slowly. It may be close to its tipping point.</div>' : '') + '<h1>How many nets?</h1>' +
         '<div class="grid">' + [0, 1, 2, 3].map(function (k) { return '<button type="button" class="opt" data-a="nets" data-v="' + k + '" aria-pressed="' + (pick === k) + '"><b>' + k + '</b><small>' + (k ? '≈ ' + signed(expected(k, ST.est, ST.ev)) : 'stay in port') + '</small></button>'; }).join('') + '</div>' +
         (ST.pat ? '<div class="note">Quota: 1 net. ' + PATROL[ST.pat].name + ': fee ' + PATROL[ST.pat].fee + ' ₼. Caught over it: you lose double what the extra nets earn.</div>' : '') +
         statusLine('nets|' + s, pick !== undefined && got === pick, 'Tap to choose. Talk to the others if you like.', 'The screen has your choice. You can change it until the season closes.') + mine(m);
@@ -338,7 +339,7 @@ function render() {
       break;
     case 'end':
       h = '<div class="tag">Game over</div><h1>' + (ST.col ? 'The sea collapsed' : 'The sea survived') + '</h1><div class="big">' + money(m[4]) + '</div>' +
-        '<p class="p">' + (ST.col ? 'Nobody’s money counts.' : 'You finished ' + ordinal(m[5]) + ' of ' + ST.n + '.' + (ST.win ? ' The winner: ' + esc(ST.win) + '.' : '')) + ' The real stock: ' + ST.S + '.</p>' +
+        '<p class="p">' + (ST.col ? 'Nobody’s money counts.' : 'You finished ' + ordinal(m[5]) + ' of ' + ST.n + '.' + (ST.win ? ' The winner: ' + esc(ST.win) + '.' : '')) + ' The real stock: ' + ST.S + (ST.T ? '; the tipping point: ' + ST.T : '') + '.</p>' +
         '<p class="p">Keep this page open: if the presenter starts a new game, you join it automatically.</p>';
       break;
   }
